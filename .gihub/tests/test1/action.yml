@@ -1,0 +1,34 @@
+inputs:
+  sampleInput:
+    description: sampleInput
+    default: Test value
+  nodever:
+    description: sampleInput
+    default: '16'
+runs:
+  using: composite
+  steps:
+    - uses: actions/cache@v2
+      id: cacheaction
+      with:
+        key: mycache-${{github.run_id}}
+        path: |
+          ~/cache
+    - uses: VolkerWessels/conditional-composite-action@v1
+      with:
+        if: ${{steps.cacheaction.outputs.cache-hit != 'true'}}
+        step: |
+          uses: actions/setup-node@v2
+          with:
+            node-version: ${{inputs.nodever}}
+    - uses: VolkerWessels/conditional-composite-action@v1
+      with:
+        if: ${{steps.cacheaction.outputs.cache-hit != 'true'}}
+        step: |
+          run: |
+            mkdir -p ~/cache
+            echo '${{inputs.sampleInput}}' > ~/cache/tmp.txt
+          shell: bash
+    - run: |
+        cat ~/cache/tmp.txt
+      shell: bash
